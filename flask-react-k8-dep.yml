@@ -1,0 +1,43 @@
+# This YAML file creates a Deployment and Service for both the Flask API and React app.
+
+apiVersion: apps/v1  # API version for deployment
+kind: Deployment  # Declares this is a Deployment
+metadata:
+  name: flask-react-deployment  # Name of the deployment
+spec:
+  replicas: 3  # Number of replicas (pods) to create
+  selector:
+    matchLabels:
+      app: flask-react-app  # Label to identify the pods for this deployment
+  template:
+    metadata:
+      labels:
+        app: flask-react-app  # Label that will be assigned to the pods
+    spec:
+      containers:
+      - name: flask-backend  # Name of the Flask backend container
+        image: baseerkhan1/backend-k8s:v3  # Docker image for the Flask backend
+        ports:
+        - containerPort: 5000  # Exposes Flask backend on port 5000
+      - name: react-frontend  # Name of the React frontend container
+        image: baseerkhan1/frontend-k8s:v1  # Docker image for the React frontend
+        ports:
+        - containerPort: 3000  # Exposes React frontend on port 3000
+---
+apiVersion: v1  # API version for service
+kind: Service  # Declares this is a Service
+metadata:
+  name: flask-react-service  # Name of the service
+spec:
+  selector:
+    app: flask-react-app  # Selects the pods with the label 'app: flask-react-app'
+  ports:
+    - name: react-port  # Name for the React frontend port
+      protocol: TCP  # Protocol used for the service
+      port: 3000  # External port for the React app
+      targetPort: 3000  # Internal port in the container
+    - name: flask-port  # Name for the Flask backend port
+      protocol: TCP  # Protocol used for the service
+      port: 5000  # External port for the Flask API
+      targetPort: 5000  # Internal port in the container
+  type: LoadBalancer  # Creates a LoadBalancer to distribute traffic among the replicas
